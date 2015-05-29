@@ -7,6 +7,7 @@ from operator import itemgetter
 from collections import OrderedDict
 from copy import deepcopy
 from matplotlib.ticker import ScalarFormatter
+import mpld3
 
 def main():
 
@@ -48,9 +49,9 @@ def buildPlot(nparray,ReturnValues):
 	if not ReturnValues	:
 		plt.figure()
 	else:
-		fig,ax = plt.subplots(figsize=(25.5,15.0))
+		fig,ax = plt.subplots(figsize=(20,10))
 		#bp=plt.boxplot(nparray,patch_artist=True)
-		bp=plt.boxplot(nparray,patch_artist=True, whis=[5,95])
+		bp=plt.boxplot(nparray, whis=[5,95])
 
 		
 	handles, labels = plt.gca().get_legend_handles_labels()
@@ -61,13 +62,21 @@ def buildPlot(nparray,ReturnValues):
 	
 	frame1 = plt.gca()			
 	frame1.axes.get_xaxis().set_visible(False)
+	frame1.axes.get_xaxis().set_ticks([])
 	plt.ylabel('nucleotide length of the gene')
 	plt.title("allele size comparison per gene for "+str(len(nparray))+"genes")
-	plt.setp(bp['boxes'], color='black',facecolor="white")
+	
+	#for box in bp['boxes']:
+		# change outline color
+	#	box.set( color='white', linewidth=2)
+    # change fill color
+	#	box.set( facecolor = 'black' )
+	
+	#plt.setp(bp['boxes'], color='blue')
 	plt.setp(bp['whiskers'], color='blue')
 	plt.setp(bp['fliers'],marker='o', markerfacecolor='green',linestyle='none')
 	
-	return plt,ax
+	return plt,ax,fig
 	
 
 def getStats(genes,threshold,OneNotConserved,ReturnValues):
@@ -207,35 +216,20 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 		genebasename=str(os.path.basename(genes))
 		genebasename=genebasename.split(".")
 		genebasename=genebasename[0]
-		imagesDir="./resultsHTML/"+genebasename+"/"
 		
 		
+		plt,ax,fig=buildPlot(sortbymedia,ReturnValues)
+		#plt.yscale('log', basey=10)
 		
-		copySortbymedia = deepcopy(sortbymedia)
-		j=0
-		while len(copySortbymedia)>0:
-			i=0
-			
-			batch=[]
-			while i<100:
-				try:
-					batch.append(copySortbymedia.pop(0))
-					i+=1
-				except:
-					i+=200
-			plt,ax=buildPlot(batch,ReturnValues)
-			j+=1
-			"""plt.yscale('log', basey=10)
-			for axis in [ax.xaxis, ax.yaxis]:
-				axis.set_major_formatter(ScalarFormatter())"""
-			plt.savefig(imagesDir+"plot"+str(j)+".png", bbox_inches='tight')
-			
-			
-		plt,ax=buildPlot(sortbymedia,ReturnValues)
-		plt.yscale('log', basey=10)
-		for axis in [ax.xaxis, ax.yaxis]:
-			axis.set_major_formatter(ScalarFormatter())
-		plt.savefig(imagesDir+"plot.png", bbox_inches='tight')
+		#for axis in [ax.yaxis]:
+		#	axis.set_major_formatter(ScalarFormatter())
+		
+		#boxplothtml=mpld3.fig_to_dict(fig,template_type="simple")
+		boxplothtml=mpld3.fig_to_dict(fig)
+		
+		#mpld3.show()
+		
+		#plt.savefig(imagesDir+"plot.png", bbox_inches='tight')
 		
 		plt.close('all')
 		
@@ -250,17 +244,21 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 		bp=plt.hist(modaStats,sorted(list(asd)),histtype='stepfilled')"""
 		fig, ax = plt.subplots(figsize=(25.5,15.0))
 		bp=plt.hist(modaStats,100,rwidth=0.8)
-		plt.ylabel('Number of times')
+		plt.ylabel('Number of occurrences')
 		plt.xlabel('Allele Size')
 		start, end = ax.get_xlim()
-		print start, end
 		ticks=range(int(start),int(end),500)
 		plt.xticks(ticks)
 		plt.grid(True)
 		#ax.xaxis.set_major_formatter(ticker.FormatStrFormatter('%0.1f'))
 		#plt.show()
-		plt.savefig(imagesDir+"histogram_mode.png", bbox_inches='tight',histtype='step')
-		return notconservedlengthgenes,len(conservedgenes),z
+		
+		#histplothtml=mpld3.fig_to_dict(fig,template_type="simple")
+		histplothtml=mpld3.fig_to_dict(fig)
+		#mpld3.show()
+		
+		#plt.savefig(imagesDir+"histogram_mode.png", bbox_inches='tight',histtype='step')
+		return notconservedlengthgenes,len(conservedgenes),z,boxplothtml,histplothtml
 
 if __name__ == "__main__":
     main()
