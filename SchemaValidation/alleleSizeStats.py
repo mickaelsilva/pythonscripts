@@ -8,6 +8,8 @@ from collections import OrderedDict
 from copy import deepcopy
 from matplotlib.ticker import ScalarFormatter
 import mpld3
+from mpld3 import utils, plugins
+
 
 def main():
 
@@ -52,7 +54,8 @@ def buildPlot(nparray,ReturnValues):
 		fig,ax = plt.subplots(figsize=(20,10))
 		#bp=plt.boxplot(nparray,patch_artist=True)
 		bp=plt.boxplot(nparray, whis=[5,95])
-
+	
+	
 		
 	handles, labels = plt.gca().get_legend_handles_labels()
 
@@ -76,7 +79,7 @@ def buildPlot(nparray,ReturnValues):
 	plt.setp(bp['whiskers'], color='blue')
 	plt.setp(bp['fliers'],marker='o', markerfacecolor='green',linestyle='none')
 	
-	return plt,ax,fig
+	return plt,ax,fig,bp
 	
 
 def getStats(genes,threshold,OneNotConserved,ReturnValues):
@@ -159,6 +162,7 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 			notconservedlengthgenes.append(os.path.basename(gene))
 		#aux=[minsize,sizesum/allelenumber,maxsize]
 		#print aux
+		aux.append(os.path.basename(gene))
 		statistics.append(aux)	
 		
 		#print statistics
@@ -166,10 +170,10 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 	print "\n"+str(z)+ " genes with only one allele\n"
 	sortbymedia=sorted(statistics, key=itemgetter(1))
 	sortbymedia.reverse()
-	"""j=0
-	while j<100:
-		print (sortbymedia[j])
-		j+=1"""
+	
+	orderedlistgene=[]
+	for elem in sortbymedia:
+		orderedlistgene.append(elem.pop(-1))
 	
 	print str(len(conservedlengthgenes)) +" conserved genes"
 	print str(len(notconservedlengthgenes)) +" not conserved genes"
@@ -188,22 +192,7 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 	s = set(conservedgenes)
 	temp3 = [x for x in conservedlengthgenes if x in s]
 	
-	#print temp3
-	#print len(temp3)
-	#print "there are "+ str(len(temp3))+ " genes that have their size conserved and present on the phyloviz input out of " + str(len(conservedgenes))+" genes"
-	#dddsaa
-	"""for item in sortbymedia:
-		
-		plt.plot(genenumber,item[0],'o',label="minimum",color='green')
-		plt.plot(genenumber,item[1],'o',label="mean",color='red')
-		plt.plot(genenumber,item[2],'o',label="maximum",color='black')
-		del item[0:3]
-		#print sortbymedia
-		for elem in item:
-		
-			plt.plot(genenumber,elem,'o',color='yellow')"""
-	
-	#plt.xlim([-1,5])	
+
 		
 	if not ReturnValues	:
 		plt=buildPlot(sortbymedia,ReturnValues)
@@ -218,17 +207,32 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 		genebasename=genebasename[0]
 		
 		
-		plt,ax,fig=buildPlot(sortbymedia,ReturnValues)
+		plt,ax,fig,bp=buildPlot(sortbymedia,ReturnValues)
 		#plt.yscale('log', basey=10)
 		
 		#for axis in [ax.yaxis]:
 		#	axis.set_major_formatter(ScalarFormatter())
 		
 		#boxplothtml=mpld3.fig_to_dict(fig,template_type="simple")
-		boxplothtml=mpld3.fig_to_dict(fig)
+
+		#labels = ['boxes {0}'.format(i + 1) for i in range(len(bp.get('medians')))]
 		
+
+		allboxes=bp.get('boxes')
+		i=0
+		for box in allboxes:
+			mpld3.plugins.connect(fig, plugins.LineLabelTooltip(box,label=orderedlistgene[i]))
+			i+=1
+		allmedians=bp.get('medians')
+		i=0
+		for median in allmedians:
+			mpld3.plugins.connect(fig, plugins.LineLabelTooltip(median,label=orderedlistgene[i]))
+			i+=1
+		
+			
 		#mpld3.show()
-		
+		boxplothtml=mpld3.fig_to_dict(fig)
+
 		#plt.savefig(imagesDir+"plot.png", bbox_inches='tight')
 		
 		plt.close('all')
