@@ -9,7 +9,7 @@ from copy import deepcopy
 from matplotlib.ticker import ScalarFormatter
 import mpld3
 from mpld3 import utils, plugins
-
+import numpy
 
 def main():
 
@@ -41,6 +41,32 @@ def main():
 		pass
 	
 	return getStats(genes,threshold,OneNotConserved,ReturnValues)
+
+class ClickInfo(plugins.PluginBase):
+    """Plugin for getting info on click"""
+    
+    JAVASCRIPT = """
+    mpld3.register_plugin("clickinfo", ClickInfo);
+    ClickInfo.prototype = Object.create(mpld3.Plugin.prototype);
+    ClickInfo.prototype.constructor = ClickInfo;
+    ClickInfo.prototype.requiredProps = ["id"];
+    ClickInfo.prototype.defaultProps = {labels:null}
+    function ClickInfo(fig, props){
+        mpld3.Plugin.call(this, fig, props);
+    };
+    
+    ClickInfo.prototype.draw = function(){
+        var obj = mpld3.get_element(this.props.id);
+        var labels = this.props.labels;
+        obj.elements().on("mousedown",function(d, i){ 
+                            window.open(labels, '_blank')});
+    }
+    """
+    def __init__(self, points, labels):
+		self.points = points
+		self.labels = labels
+		self.dict_ = {"type": "clickinfo","id": utils.get_id(points),"labels": labels}
+
 
 def buildPlot(nparray,ReturnValues):
 	
@@ -95,9 +121,12 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 	conservedgenes=[]
 	print "Genes with only 1 allele:"
 	modaStats=[]
+	allsizes=[]
+	
 	for gene in gene_fp:
-		
+
 		gene = gene.rstrip('\n')
+		
 		conservedgenes.append(gene)
 		gene_fp2 = HTSeq.FastaReader(gene)
 		maxsize=0
@@ -106,6 +135,7 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 		allelenumber=0
 		aux=[0,0]
 		sizes=[]
+		#firstallelesize=len((gene_fp2[0]).seq)
 		
 		for allele in gene_fp2: 
 			#print allele
@@ -121,30 +151,26 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 				aux.append(allelesize)
 			sizesum+=allelesize
 			allelenumber+=1
-		#if maxsize>2200 and minsize<1600:
-			#print gene
+
+
 		aux[0]=	minsize
 		mean=float(sizesum)/allelenumber
-		#print mean
 		aux[1]=	maxsize
-		#aux[2]=	str(gene)
+
 		
 		i=0
-		
+		#print sizes
 		moda=max(set(sizes), key=sizes.count)
+		median=numpy.median(numpy.array(sizes))
+		#print median
 		modaStats.append(moda)
-		#if "Unique_Acinetobacter_baumannii_AB0057.1.peg.gi_213157425_ref_YP_002319470.1_.fasta" in gene:
-			#print moda
-			#print sizes
+
 		for size in sizes:
-			#if "Unique_Acinetobacter_baumannii_AB0057.1.peg.gi_213157425_ref_YP_002319470.1_.fasta" in gene:
-				#print size, moda*1.2, moda*0.8
-			#if (not float(size)> mean*1.1 and not float(size)< mean*0.9):
+
 			if (not float(size)> moda*(1+threshold) and not float(size)< moda*(1-threshold)):
 				i+=1
 		rate = i/float(allelenumber)
-		#if "Unique_Acinetobacter_baumannii_AB0057.1.peg.gi_213157425_ref_YP_002319470.1_.fasta" in gene:
-			#print rate,i
+
 		if not OneNotConserved and (rate>=1 or (len(sizes)-i)<2) :
 			if allelenumber==1:
 				z+=1
@@ -160,21 +186,45 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 			conservedlengthgenes.append(os.path.basename(gene))
 		else:
 			notconservedlengthgenes.append(os.path.basename(gene))
-		#aux=[minsize,sizesum/allelenumber,maxsize]
-		#print aux
-		aux.append(os.path.basename(gene))
-		statistics.append(aux)	
+
+
+		#aux.append(gene)
+		#aux.append(median)
+		#aux.append(os.path.basename(gene))
+		sizes.append(gene)
+		sizes.append(sizes[0])
+		sizes.append(median)
 		
-		#print statistics
-		#adasd
+		#statistics.append(aux)	
+		allsizes.append(sizes)
+
+
 	print "\n"+str(z)+ " genes with only one allele\n"
-	sortbymedia=sorted(statistics, key=itemgetter(1))
+	
+	sortbymedia=sorted(allsizes, key=itemgetter(-1))
 	sortbymedia.reverse()
+	
+	
+	allsizes2=deepcopy(allsizes)
+	
+	sortbyfirstallele=[]
+	sortbyfirstallele=sorted(allsizes2, key=itemgetter(-2))
+	sortbyfirstallele.reverse()
+	
 	
 	orderedlistgene=[]
 	for elem in sortbymedia:
+		elem.pop(-1)
+		elem.pop(-1)
 		orderedlistgene.append(elem.pop(-1))
-	
+		
+	orderedlistgeneFirst=[]
+
+	for elem in sortbyfirstallele:
+		elem.pop(-1)
+		elem.pop(-1)
+		orderedlistgeneFirst.append(elem.pop(-1))	
+			
 	print str(len(conservedlengthgenes)) +" conserved genes"
 	print str(len(notconservedlengthgenes)) +" not conserved genes"
 	
@@ -208,44 +258,50 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 		
 		
 		plt,ax,fig,bp=buildPlot(sortbymedia,ReturnValues)
-		#plt.yscale('log', basey=10)
 		
-		#for axis in [ax.yaxis]:
-		#	axis.set_major_formatter(ScalarFormatter())
-		
-		#boxplothtml=mpld3.fig_to_dict(fig,template_type="simple")
-
-		#labels = ['boxes {0}'.format(i + 1) for i in range(len(bp.get('medians')))]
-		
-
 		allboxes=bp.get('boxes')
 		i=0
 		for box in allboxes:
-			mpld3.plugins.connect(fig, plugins.LineLabelTooltip(box,label=orderedlistgene[i]))
+			mpld3.plugins.connect(fig, plugins.LineLabelTooltip(box,label=os.path.basename(orderedlistgene[i]),voffset=50, hoffset=10))
+			mpld3.plugins.connect(fig, ClickInfo(box,(orderedlistgene[i])))
 			i+=1
 		allmedians=bp.get('medians')
 		i=0
 		for median in allmedians:
-			mpld3.plugins.connect(fig, plugins.LineLabelTooltip(median,label=orderedlistgene[i]))
+			mpld3.plugins.connect(fig, plugins.LineLabelTooltip(median,label=os.path.basename(orderedlistgene[i]),voffset=50, hoffset=10))
+			mpld3.plugins.connect(fig, ClickInfo(median,(orderedlistgene[i])))
 			i+=1
 		
 			
 		#mpld3.show()
-		boxplothtml=mpld3.fig_to_dict(fig)
 
+		"""boxplothtml=mpld3.fig_to_dict(fig)
+		
+		plt.close('all')
+		
+		plt,ax,fig,bp=buildPlot(sortbyfirstallele,ReturnValues)
+		
+		allboxes=bp.get('boxes')
+		i=0
+		for box in allboxes:
+			mpld3.plugins.connect(fig, plugins.LineLabelTooltip(box,label=os.path.basename(orderedlistgeneFirst[i]),voffset=50, hoffset=10))
+			mpld3.plugins.connect(fig, ClickInfo(box,(orderedlistgeneFirst[i])))
+			i+=1
+		allmedians=bp.get('medians')
+		i=0
+		for median in allmedians:
+			mpld3.plugins.connect(fig, plugins.LineLabelTooltip(median,label=os.path.basename(orderedlistgeneFirst[i]),voffset=50, hoffset=10))
+			mpld3.plugins.connect(fig, ClickInfo(median,(orderedlistgeneFirst[i])))
+			i+=1
+		
+			
+		mpld3.show()"""
+		
 		#plt.savefig(imagesDir+"plot.png", bbox_inches='tight')
 		
 		plt.close('all')
 		
-		#fig,ax = plt.subplots(figsize=(25.5,15.0))
-		"""print modaStats
-		print len (modaStats)
-		print type(modaStats[0])
-		print type(modaStats)
-		
-		asd=set(modaStats)
-		
-		bp=plt.hist(modaStats,sorted(list(asd)),histtype='stepfilled')"""
+
 		fig, ax = plt.subplots(figsize=(25.5,15.0))
 		bp=plt.hist(modaStats,100,rwidth=0.8)
 		plt.ylabel('Number of occurrences')

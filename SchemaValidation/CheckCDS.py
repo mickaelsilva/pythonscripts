@@ -52,7 +52,7 @@ def translateSeq(DNASeq):
 
 def main():
 	
-	parser = argparse.ArgumentParser(description="This program analyses the cds of files containing alleles")
+	parser = argparse.ArgumentParser(description="This program downloads sequencing runs given the sra RUN ID in a list to a selected directory")
 	parser.add_argument('-i', nargs='?', type=str, help='list genes', required=True)
 	parser.add_argument('-r', nargs='?', type=bool, help='Return values', required=False)
 	
@@ -78,11 +78,16 @@ def analyzeCDS(genes,ReturnValues):
 	notMultiple=0
 	totalalleles=0
 	
-	listStopc=[]
-	listnotStart=[]
-	listnotMultiple=[]
+	
+	
+	statsPerGene={}
 	
 	for gene in gene_fp:
+		
+		listStopc=[]
+		listnotStart=[]
+		listnotMultiple=[]
+		
 		
 		print "####################"
 		print str(os.path.basename(gene))
@@ -95,7 +100,8 @@ def analyzeCDS(genes,ReturnValues):
 			k+=1
 			if (len(allele.seq) % 3 != 0):
 				multiple=False
-				listnotMultiple.append(str(os.path.basename(gene))+"\tallele "+str(k))
+				#listnotMultiple.append(str(os.path.basename(gene))+"\tallele "+str(k))
+				listnotMultiple.append(str(k))
 				print "allele "+str(k)+" is not multiple of 3"
 				pass
 			else:
@@ -104,15 +110,19 @@ def analyzeCDS(genes,ReturnValues):
 				except Exception, err:
 					if "Extra in frame stop codon found" in str(err):
 						stopc+=1
-						listStopc.append(str(os.path.basename(gene))+"\tallele "+str(k))
+						#listStopc.append(str(os.path.basename(gene))+"\tallele "+str(k))
+						listStopc.append(str(k))
 					elif "is not a start codon" in str(err):
 						notStart+=1
-						listnotStart.append(str(os.path.basename(gene))+"\tallele "+str(k))
+						#listnotStart.append(str(os.path.basename(gene))+"\tallele "+str(k))
+						listnotStart.append(str(k))
 					else:
 						print err
 					print "allele "+str(k)+" is not translating"
 					pass
+		statsPerGene[gene]=listnotMultiple,listStopc,listnotStart,k
 		totalalleles+=k
+		
 	print str(stopc) + " alleles have stop codons inside"
 	print str(notStart) + " alleles don't have start codons"
 	print "total of alleles : " + str(totalalleles)
@@ -128,7 +138,7 @@ def analyzeCDS(genes,ReturnValues):
 				f.write(item)
 				f.write("\n")
 	else:
-		return listStopc,listnotStart,listnotMultiple
+		return statsPerGene
 	
 if __name__ == "__main__":
     main()
