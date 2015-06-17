@@ -3,12 +3,12 @@
 Analyze your alleles for a set of parameters, taking special consideration on the allele CDS and the allele sizes per gene/locus
 
 
-requires:
-*numpy
-*biopython
-*matplotlib - http://matplotlib.org/
-*mpld3 - http://mpld3.github.io/
-*HTSeq - http://www-huber.embl.de/users/anders/HTSeq/doc/overview.html
+Dependencies:
+* numpy
+* biopython
+* matplotlib - http://matplotlib.org/
+* mpld3 - http://mpld3.github.io/
+* HTSeq - http://www-huber.embl.de/users/anders/HTSeq/doc/overview.html
 
 
 =============
