@@ -47,23 +47,42 @@ def main():
 	
 	boxplot=str(json.dumps(boxplot))
 	histplot=str(json.dumps(histplot))
-	print notConservedgenes
+
 	listStopc,listnotStart,listnotMultiple=CheckCDS.analyzeCDS(genes,True)
 	
 	with open("./resultsHTML/"+genebasename+"_results.html", "wb") as f:
-		f.write("<!DOCTYPE html>\n<html>\n<head><script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js'></script><script type='text/javascript' src='https://mpld3.github.io/js/mpld3.v0.2.js'></script>\n<title>Schema Validation Results</title>\n</head>\n<body>\n<h1>Allele CDS analysis results</h1>\n")
-		f.write("<h2>Alleles with stop codon inside</h2>\n<ul style='list-style-type:circle'>\n")		
+		f.write("<!DOCTYPE html>\n<html>\n<head><script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js'></script><script type='text/javascript' src='https://mpld3.github.io/js/mpld3.v0.2.js'></script>\n")
+		f.write("""<style type="text/css">
+		ul {
+    /*min-height: 300px;*/
+    -webkit-column-count: 4;
+       -moz-column-count: 4;
+            column-count: 4; /*4 is just placeholder -- can be anything*/
+}
+li {
+    display: table;
+    padding-bottom: 20px; 
+    margin-right: 30px;
+}
+li a {
+    color: rgb(0, 162, 232);
+}
+</style>""")
+
+		
+		f.write("<title>Schema Validation Results</title>\n</head>\n<body>\n<h1>Allele CDS analysis results</h1>\n")
+		f.write("<h2>Alleles with stop codon inside</h2>\n<ul>\n")		
 		for item in listStopc:
 			f.write("<li>"+str(item)+"</li>")
 			f.write("\n")
 		f.write("</ul>\n")
-		f.write("<h2>Alleles without start codon</h2>\n<ul style='list-style-type:circle'>\n")		
+		f.write("<h2>Alleles without start codon</h2>\n<ul>\n")		
 		for item in listnotStart:
 			f.write("<li>"+str(item)+"</li>")
 			f.write("\n")
 		f.write("</ul>\n")
 		
-		f.write("<h2>Not multiple of 3 alleles</h2>\n<ul style='list-style-type:circle'>\n")		
+		f.write("<h2>Not multiple of 3 alleles</h2>\n<ul>\n")		
 		for item in listnotMultiple:
 			f.write("<li>"+str(item)+"</li>")
 			f.write("\n")
@@ -71,7 +90,7 @@ def main():
 		
 		f.write("<h1>Allele size analysis using a mode +/- "+str(threshold)+"</h1>\n<h3>"+str(totalgenes)+" total genes</h3>\n<h3>"+str(len(notConservedgenes))+" genes not conserved</h3>\n<h3>"+str(genesWOneAllele)+" genes with only one allele</h3>\n")
 		f.write("<h2>Distribution of allele mode sizes per gene</h2>\n<div id='fig02'></div>\n<br>")
-		f.write("<h2>Boxplot for all genes</h2><p>Box plot for each gene on a descending order of the maximum allele size</p><p>Use the zoom button and hover the mouse hover a box/median to see the gene name</p><p>-->Box represent the 25 and 75 percentiles (1st and 3rd quartile)</p><p>-->Box plot whiskers representing the 5 and 95 percentile</p><p>-->Red line represent the median (2nd quartile)</p><p>-->Green dots are outliers </p>\n<div id='fig01'></div>\n")
+		f.write("<h2>Boxplot for all genes</h2><p>Box plot for each gene on a descending order of the maximum allele size</p><p>Use the zoom button and hover the mouse over a box/median to see the gene name</p><p>-->Box represent the 25 and 75 percentiles (1st and 3rd quartile)</p><p>-->Box plot whiskers representing the 5 and 95 percentile</p><p>-->Red line represent the median (2nd quartile)</p><p>-->Green dots are outliers </p>\n<div id='fig01'></div>\n")
 		
 
 		f.write("\n<script type='text/javascript'>var json01 ="+str(boxplot)+";\nvar json02 ="+str(histplot)+";\nmpld3.draw_figure('fig01', json01);mpld3.draw_figure('fig02', json02);</script>")
