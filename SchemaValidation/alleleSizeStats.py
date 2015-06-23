@@ -123,6 +123,7 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 	modaStats=[]
 	allsizes=[]
 	
+
 	for gene in gene_fp:
 
 		gene = gene.rstrip('\n')
@@ -135,13 +136,13 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 		allelenumber=0
 		aux=[0,0]
 		sizes=[]
-		#firstallelesize=len((gene_fp2[0]).seq)
-		
+
+
+		#per gene get all sizes, minimin size, maximum size, media and mode
 		for allele in gene_fp2: 
-			#print allele
+
 			allelesize=len(allele.seq)
 			sizes.append(allelesize)
-			#print allelesize
 			if 	allelesize>=maxsize or allelesize<=minsize:
 				if allelesize>maxsize:
 					maxsize=allelesize
@@ -159,12 +160,14 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 
 		
 		i=0
-		#print sizes
+
 		moda=max(set(sizes), key=sizes.count)
 		median=numpy.median(numpy.array(sizes))
-		#print median
-		modaStats.append(moda)
 
+		modaStats.append(moda)
+		
+		
+		#check if the gene is conserved considering the threshold and the -p parameter
 		for size in sizes:
 
 			if (not float(size)> moda*(1+threshold) and not float(size)< moda*(1-threshold)):
@@ -188,25 +191,25 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 			notconservedlengthgenes.append(os.path.basename(gene))
 
 
-		#aux.append(gene)
-		#aux.append(median)
-		#aux.append(os.path.basename(gene))
+
 		sizes.append(gene)
 		sizes.append(sizes[0])
 		sizes.append(median)
-		
-		#statistics.append(aux)	
+	
+	
 		allsizes.append(sizes)
 
 
 	print "\n"+str(z)+ " genes with only one allele\n"
 	
+	#order genes by median
 	sortbymedia=sorted(allsizes, key=itemgetter(-1))
 	sortbymedia.reverse()
 	
 	
 	allsizes2=deepcopy(allsizes)
 	
+	#order genes by the first allele
 	sortbyfirstallele=[]
 	sortbyfirstallele=sorted(allsizes2, key=itemgetter(-2))
 	sortbyfirstallele.reverse()
@@ -236,14 +239,14 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 				f.write(str(gene)+"\n")
 	
 	
-	asd=list(set(conservedgenes) - set(conservedlengthgenes))
+	"""asd=list(set(conservedgenes) - set(conservedlengthgenes))
 	#print (asd)
 	
 	s = set(conservedgenes)
-	temp3 = [x for x in conservedlengthgenes if x in s]
+	temp3 = [x for x in conservedlengthgenes if x in s]"""
 	
 
-		
+	#create the boxplot and build the html representation	
 	if not ReturnValues	:
 		plt=buildPlot(sortbymedia,ReturnValues)
 		
@@ -274,8 +277,11 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 		
 			
 		#mpld3.show()
-
-		"""boxplothtml=mpld3.fig_to_dict(fig)
+		#asdasda
+		boxplothtml=mpld3.fig_to_dict(fig)
+		
+		"""
+		#code to build the boxplot ordered by first allele of the gene file
 		
 		plt.close('all')
 		
@@ -299,10 +305,13 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 		
 		#plt.savefig(imagesDir+"plot.png", bbox_inches='tight')
 		
-		plt.close('all')
 		
+		# build size histogram
+		
+		plt.close('all')
 
-		fig, ax = plt.subplots(figsize=(25.5,15.0))
+		
+		fig, ax = plt.subplots(figsize=(23.5,13.0))
 		bp=plt.hist(modaStats,100,rwidth=0.8)
 		plt.ylabel('Number of occurrences')
 		plt.xlabel('Allele Size')
@@ -310,14 +319,11 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 		ticks=range(int(start),int(end),500)
 		plt.xticks(ticks)
 		plt.grid(True)
-		#ax.xaxis.set_major_formatter(ticker.FormatStrFormatter('%0.1f'))
-		#plt.show()
 		
-		#histplothtml=mpld3.fig_to_dict(fig,template_type="simple")
+		
 		histplothtml=mpld3.fig_to_dict(fig)
-		#mpld3.show()
-		
-		#plt.savefig(imagesDir+"histogram_mode.png", bbox_inches='tight',histtype='step')
+
+
 		return notconservedlengthgenes,len(conservedgenes),z,boxplothtml,histplothtml
 
 if __name__ == "__main__":

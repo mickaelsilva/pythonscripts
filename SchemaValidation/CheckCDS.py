@@ -20,21 +20,18 @@ def translateSeq(DNASeq):
 	reversedSeq=False
 	try:
 		myseq= Seq(seq)
-		#print myseq
 		protseq=Seq.translate(myseq, table=11,cds=True)
 	except:
 		reversedSeq=True
 		try:
 			seq=reverseComplement(seq)
 			myseq= Seq(seq)
-			#print myseq
 			protseq=Seq.translate(myseq, table=11,cds=True)
 						
 		except:
 			try:
 				seq=seq[::-1]
 				myseq= Seq(seq)
-				#print myseq
 				protseq=Seq.translate(myseq, table=11,cds=True)
 			except:
 				reversedSeq=False
@@ -42,11 +39,9 @@ def translateSeq(DNASeq):
 					seq=seq[::-1]							
 					seq=reverseComplement(seq)
 					myseq= Seq(seq)
-					#print myseq
 					protseq=Seq.translate(myseq, table=11,cds=True)
 				except Exception as e:
-					#print "translated error"
-					#print e
+
 					raise ValueError(e)
 	return protseq,seq,reversedSeq
 
@@ -96,25 +91,27 @@ def analyzeCDS(genes,ReturnValues):
 		gene = gene.rstrip('\n')
 		multiple=True
 		gene_fp2 = HTSeq.FastaReader(gene)
-		for allele in gene_fp2: #new db for each allele to blast it against himself
+		
+		# translate each allele and report the error if unable to translate
+		for allele in gene_fp2: 
+			
 			k+=1
+			# if allele is not multiple of 3 it's useless to try to translate
 			if (len(allele.seq) % 3 != 0):
 				multiple=False
-				#listnotMultiple.append(str(os.path.basename(gene))+"\tallele "+str(k))
 				listnotMultiple.append(str(k))
 				print "allele "+str(k)+" is not multiple of 3"
 				pass
 			else:
 				try:
 					protseq,seq,reversedSeq=translateSeq(allele.seq)
+					
 				except Exception, err:
 					if "Extra in frame stop codon found" in str(err):
 						stopc+=1
-						#listStopc.append(str(os.path.basename(gene))+"\tallele "+str(k))
 						listStopc.append(str(k))
 					elif "is not a start codon" in str(err):
 						notStart+=1
-						#listnotStart.append(str(os.path.basename(gene))+"\tallele "+str(k))
 						listnotStart.append(str(k))
 					else:
 						print err
