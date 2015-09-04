@@ -135,3 +135,15 @@ short example of a list genes:
 /home/msilva/Desktop//Unique_Acinetobacter_baumannii_1656-2.1.peg.gi_384133544_ref_YP_005516156.1_.fasta
 /home/msilva/Desktop//Unique_Acinetobacter_baumannii_1656-2.1.peg.gi_384133133_ref_YP_005515745.1_.fasta
 ```
+
+=============
+#CreateSchema.py
+
+Given a concatenated ffn file, removes genes that are substring of bigger genes and genes smaller than choosen in the -g parameter. Blasts all the genes against each other and saves the bigger genes, removing the smaller genes with a 0.6>BSR
+
+	% CreateSchema.py -i allffnfile.fasta -g 200
+	
+Output:
+proteins.fasta containing the transaltion of all the genes from the given ffn file, without substring genes
+*.fasta large set of .fasta files, 1 per gene
+
