@@ -149,6 +149,7 @@ Given a concatenated ffn file, removes genes that are substring of bigger genes 
 	% CreateSchema.py -i allffnfile.fasta -g 200
 	
 Output:
+```
 proteins.fasta containing the transaltion of all the genes from the given ffn file, without substring genes
 *.fasta large set of .fasta files, 1 per gene
-
+```
