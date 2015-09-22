@@ -6,6 +6,24 @@ import ftplib
 import argparse
 import os.path
 
+def download(dirs2,target_dir2,ref2,success2,f2,link2):
+	#new folder for each reference with reference id name
+	subprocess.call(['mkdir', target_dir2+"/"+ref2])
+				
+	#get fasta file for each read file name
+	for item in dirs2:
+					
+		f2.cwd(link2)
+		final_target_dir=target_dir2+"/"+ref2 +"/"+ item
+		file = open(final_target_dir, 'wb')
+		print "Downloading: %s" % item
+
+		f2.retrbinary('RETR %s' % item, file.write)
+		file.close()
+		print "Downloaded %s" % item
+		success2+=1		
+
+	return success2
 
 def main():
 	
@@ -42,10 +60,11 @@ def main():
 		toDown=True
 		try:
 			ref=ref.split("\t")
-			model=ref[len(ref)-1]
+			model=ref[1]
 			ref=ref[0]
 			
 		except:
+			
 			continue
 		else:
 			if machinetype and machinetype not in model.lower():
@@ -53,6 +72,7 @@ def main():
 				toDown=False
 		
 		if toDown:
+			
 			try:
 				
 				firstid=ref[0:6]
@@ -61,29 +81,26 @@ def main():
 				f.cwd(link)
 				dirs=f.nlst();
 				
-				
-			except Exception, e:
-				failed +=1
-				print "Bad ID: " + ref
-			
+			except:
+				try:
+					firstid=ref[0:6]
+					#get the read files name from the reference id
+					link='/vol1/fastq/'+firstid+"/00"+ref[-1]+"/"+ref
+					f.cwd(link)
+					dirs=f.nlst();
+					
+					
+						
+				except Exception, e:
+					failed +=1
+					print "Bad ID: " + ref
+				else:
+					success=download(dirs,target_dir,ref,success,f,link)	
 			
 			else:
 				
-				#new folder for each reference with reference id name
-				subprocess.call(['mkdir', target_dir+"/"+ref])
-				
-				#get fasta file for each read file name
-				for item in dirs:
-					
-					f.cwd(link)
-					final_target_dir=target_dir+"/"+ref +"/"+ item
-					file = open(final_target_dir, 'wb')
-					print "Downloading: %s" % item
-
-					f.retrbinary('RETR %s' % item, file.write)
-					file.close()
-					print "Downloaded %s" % item
-					success+=1		
+				success=download(dirs,target_dir,ref,success,f,link)
+						
 				
 	f.quit()	
 	print "Successfully downloaded %s files and %s ID references were wrong" % (success,failed)	
