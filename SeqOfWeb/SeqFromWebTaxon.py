@@ -1,5 +1,3 @@
-
-
 import urllib2
 import sys
 import urllib
@@ -29,13 +27,16 @@ def main():
 	
 	taxonname=urllib.quote(taxonname)
 	url="http://www.ebi.ac.uk/ena/data/view/Taxon%3A"+taxonname+"&display=xml"
-	content = urllib2.urlopen(url)
-	xml = content.read()
-	tree = ET.fromstring(xml)
-	taxonid=''
+	try:
+		content = urllib2.urlopen(url)
+		xml = content.read()
+		tree = ET.fromstring(xml)
+		taxonid=''
+	except:
+		print "Ooops!There might be a problem with the ena service, try later or check if the xml is well formated at " + url
+		raise
 	for child in tree:
 		taxonid=child.get('taxId')
-	
 	if (taxonid):
 		print "Taxon found: "+taxonid
 		url="http://www.ebi.ac.uk/ena/data/warehouse/search?query=%22tax_tree%28"+taxonid+"%29%22&result=read_run&display=xml"
@@ -47,6 +48,7 @@ def main():
 		n=0
 		with open(outputfile, "a") as f:
 			model=''
+			prjid=''
 			models={}
 			for child in tree:
 				runid=child.get('accession')
@@ -73,13 +75,18 @@ def main():
 												for child6 in child5:
 													if child6.tag == 'INSTRUMENT_MODEL':
 														model=child6.text
+										elif child4.tag == 'STUDY_REF':
+											prjid=child4.get('accession')
 							except:
 								model='not found'
-					f.write(str(runid)+"\t"+model+"\n")								
-					print "run acession %s sequenced on %s" % (runid, model)
+					
+									
+					f.write(str(runid)+"\t"+model+"\t"+prjid+"\n")								
+					print "run acession %s sequenced on %s from project %s" % (runid, model,prjid)
 				else:
 					f.write(str(runid)+"\n")								
-					print "run acession %s" % (runid)
+					print "run acession %s" % (runid,prjid)
+				
 		print "\nfound %s run id's" % n
 		
 	else:
