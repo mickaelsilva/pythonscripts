@@ -73,7 +73,6 @@ def main():
 	filename=os.path.basename(genes)
 	abspath=abspath.replace(filename,'')
 	proteinfile=os.path.join(abspath,'proteins.fasta') 
-	#proteinfile="/home/msilva/Desktop/scriptsSS/pneumoSchemeGenes/proteins.fasta"
 	
 	geneDict = {}
 	protDict={}
@@ -286,7 +285,6 @@ def main():
 					if not (str(align.hit_def) == str(blast_record.query)):
 						selfblastscore=((align.hsps)[0]).score
 						print "gene "+str(align.hit_def)+" is bigger than gene "+str(blast_record.query)
-						#print "lalalal"
 						raise
 				
 				while i<len(blast_record.alignments):
@@ -307,7 +305,6 @@ def main():
 
 		except Exception as e:
 			#print e
-			#print "WTF"
 			pass
 	"""#with open("asdasd.txt", "wb") as f:
 			#f.write(str(paralogs))
