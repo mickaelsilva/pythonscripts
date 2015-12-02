@@ -213,6 +213,7 @@ def main():
 	blast_records = runBlastParser(cline, blast_out_file, geneFile)
 	toRemove=[]
 	genesToKeep=[]
+	log=["removed","cause","explanation"]
 	for blast_record in blast_records:
 		
 		allelename=blast_record.query
@@ -234,6 +235,7 @@ def main():
 				if  not str(blast_record.query) == str((blast_record.alignments[0]).hit_def):
 					genesToKeep.remove(str(blast_record.query))
 					toRemove.append(str(blast_record.query))
+					log.append(str(blast_record.query),str((blast_record.alignments[0]).hit_def),"2 is first best match")
 					
 					#if gene B is not on the toRemove list, add to genesToKeep list
 					if str((blast_record.alignments[0]).hit_def) not in toRemove:
@@ -266,6 +268,7 @@ def main():
 							genesToKeep.append(str(align.hit_def))
 							genesToKeep.remove(str(blast_record.query))
 							toRemove.append(str(blast_record.query))
+							log.append(str(blast_record.query),str(align.hit_def),"2 is bigger and bsr >0.6")
 							
 							#print "gene "+str(align.hit_def)+" is bigger than gene "+str(blast_record.query)
 							#print str(alleleLength2), str(alleleLength), scoreRatio
@@ -274,6 +277,8 @@ def main():
 						elif str(align.hit_def) in genesToKeep:
 							genesToKeep.remove(str(align.hit_def))
 							toRemove.append(str(align.hit_def))
+							log.append(str(align.hit_def),str(blast_record.query),"2 is bigger and bsr >0.6")
+							
 					i+=1
 			
 			#else gene A is on toRemove list, add all similar genes (not in genesToKeep) list to the toRemove list
@@ -294,6 +299,7 @@ def main():
 					
 					if align.hit_def not in genesToKeep and not str(align.hit_def) == str(blast_record.query) and scoreRatio>0.6 :
 						toRemove.append(align.hit_def)
+						log.append(str(align.hit_def),str(blast_record.query),"2 was on the removed list and bsr >0.6")
 							
 					else:
 						pass
@@ -306,10 +312,12 @@ def main():
 		except Exception as e:
 			#print e
 			pass
-	"""#with open("asdasd.txt", "wb") as f:
-			#f.write(str(paralogs))
+	with open("logfile.txt", "wb") as f:
+		for elem in log:
+			
+			f.write(str(elem)+"\n")
 	
-	with open("aasdasd.txt", "a") as f:
+	"""with open("aasdasd.txt", "a") as f:
 		for paralog in paralogs:
 			name=paralog.split(" ")
 			name=name[0].replace("|","_")
