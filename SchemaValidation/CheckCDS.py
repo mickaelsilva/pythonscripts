@@ -15,31 +15,32 @@ def reverseComplement(strDNA):
 
         return strDNArevC[::-1]
 
-def translateSeq(DNASeq):
+def translateSeq(DNASeq,transTable):
 	seq=DNASeq
+	tableid=transTable
 	reversedSeq=False
 	try:
 		myseq= Seq(seq)
-		protseq=Seq.translate(myseq, table=11,cds=True)
+		protseq=Seq.translate(myseq, table=tableid,cds=True)
 	except:
 		reversedSeq=True
 		try:
 			seq=reverseComplement(seq)
 			myseq= Seq(seq)
-			protseq=Seq.translate(myseq, table=11,cds=True)
+			protseq=Seq.translate(myseq, table=tableid,cds=True)
 						
 		except:
 			try:
 				seq=seq[::-1]
 				myseq= Seq(seq)
-				protseq=Seq.translate(myseq, table=11,cds=True)
+				protseq=Seq.translate(myseq, table=tableid,cds=True)
 			except:
 				reversedSeq=False
 				try:
 					seq=seq[::-1]							
 					seq=reverseComplement(seq)
 					myseq= Seq(seq)
-					protseq=Seq.translate(myseq, table=11,cds=True)
+					protseq=Seq.translate(myseq, table=tableid,cds=True)
 				except Exception as e:
 
 					raise ValueError(e)
@@ -64,7 +65,7 @@ def main():
 		
 	analyzeCDS(genes,ReturnValues)
 
-def analyzeCDS(genes,ReturnValues):
+def analyzeCDS(genes,transTable,ReturnValues):
 	
 	gene_fp = open( genes, 'r')
 	
@@ -104,7 +105,7 @@ def analyzeCDS(genes,ReturnValues):
 				pass
 			else:
 				try:
-					protseq,seq,reversedSeq=translateSeq(allele.seq)
+					protseq,seq,reversedSeq=translateSeq(allele.seq, transTable)
 					
 				except Exception, err:
 					if "Extra in frame stop codon found" in str(err):

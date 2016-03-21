@@ -11,10 +11,12 @@ def main():
 	parser = argparse.ArgumentParser(description="This program analyses a set of gene files, analyzing the alleles CDS and the length of the alleles per gene")
 	parser.add_argument('-i', nargs='?', type=str, help='list genes, directory or .txt file with the full path', required=True)
 	parser.add_argument('-p', nargs='?', type=bool, help='One bad allele still makes gene conserved', required=False)
+	parser.add_argument('-ta', nargs='?', type=int, help='Threshold', required=True)
 	parser.add_argument('-t', nargs='?', type=float, help='Threshold', required=False)
 	
 	args=parser.parse_args()
 	genes = args.i
+	transTable = args.ta
 	
 	try:
 		threshold=float(args.t)
@@ -49,7 +51,7 @@ def main():
 	boxplot=str(json.dumps(boxplot))
 	histplot=str(json.dumps(histplot))
 
-	statsPerGene=CheckCDS.analyzeCDS(genes,True)
+	statsPerGene=CheckCDS.analyzeCDS(genes,transTable,True)
 	
 	# stats values are ordered in a list allelesNotMultiple3,listStopcodonsInside,listnotStartCodon,numberOfAlleles
 	
