@@ -67,6 +67,36 @@ class ClickInfo(plugins.PluginBase):
 		self.labels = labels
 		self.dict_ = {"type": "clickinfo","id": utils.get_id(points),"labels": labels}
 
+class ClickInfo2(plugins.PluginBase):
+    """Plugin for getting info on click"""
+    
+    JAVASCRIPT = """
+    mpld3.register_plugin("clickinfo", ClickInfo2);
+    ClickInfo2.prototype = Object.create(mpld3.Plugin.prototype);
+    ClickInfo2.prototype.constructor = ClickInfo2;
+    ClickInfo2.prototype.requiredProps = ["id"];
+    ClickInfo2.prototype.defaultProps = {labels:null}
+    function ClickInfo2(fig, props){
+        mpld3.Plugin.call(this, fig, props);
+    };
+
+    ClickInfo2.prototype.draw = function(){
+        var obj = mpld3.get_element(this.props.id);
+        labels = this.props.labels;
+        obj.elements().on("mousedown",
+                          function(d, i){ 
+                            window.open(labels[i], '_blank')});
+    }
+    """
+    def __init__(self, points, labels):
+        self.points = points
+        self.labels = labels
+        """if isinstance(points, matplotlib.lines.Line2D):
+            suffix = "pts"
+        else:
+            suffix = None"""
+        self.dict_ = {"type": "clickinfo","id": utils.get_id(points, "pts"),"labels": labels}
+
 
 def buildPlot(nparray,ReturnValues):
 	
@@ -122,7 +152,8 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 	print "Genes with only 1 allele:"
 	modaStats=[]
 	allsizes=[]
-	
+	tabStats=[]
+	allNumberAlleles=[]
 
 	for gene in gene_fp:
 
@@ -136,11 +167,12 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 		allelenumber=0
 		aux=[0,0]
 		sizes=[]
+		
 
 
 		#per gene get all sizes, minimin size, maximum size, media and mode
 		for allele in gene_fp2: 
-
+			
 			allelesize=len(allele.seq)
 			sizes.append(allelesize)
 			if 	allelesize>=maxsize or allelesize<=minsize:
@@ -157,7 +189,9 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 		aux[0]=	minsize
 		mean=float(sizesum)/allelenumber
 		aux[1]=	maxsize
-
+		
+		sizesnpList=numpy.array(sizes)
+		tabStats.append([gene,numpy.amin(sizesnpList),numpy.amax(sizesnpList),numpy.mean(sizesnpList),numpy.std(sizesnpList)])
 		
 		i=0
 
@@ -195,41 +229,60 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 		sizes.append(gene)
 		sizes.append(sizes[0])
 		sizes.append(median)
+		
 	
 	
 		allsizes.append(sizes)
+		allNumberAlleles.append([gene,allelenumber])
 
-
+	with open("tabStats.txt", "wb") as t:
+		t.write("gene\tmin\tmax\tmean\tstandard deviation")
+		for elem in tabStats:
+			for elem2 in elem:
+				t.write(str(elem2)+"\t")
+			t.write("\n")
 	print "\n"+str(z)+ " genes with only one allele\n"
 	
 	#order genes by median
 	sortbymedia=sorted(allsizes, key=itemgetter(-1))
 	sortbymedia.reverse()
 	
+	#order genes by number of alleles
+	sortbyNumberAlleles=sorted(allNumberAlleles, key=itemgetter(-1))
+	sortbyNumberAlleles.reverse()
 	
-	allsizes2=deepcopy(allsizes)
+	
+	"""allsizes2=deepcopy(allsizes)
 	
 	#order genes by the first allele
 	sortbyfirstallele=[]
 	sortbyfirstallele=sorted(allsizes2, key=itemgetter(-2))
-	sortbyfirstallele.reverse()
+	sortbyfirstallele.reverse()"""
 	
 	
 	orderedlistgene=[]
+
 	for elem in sortbymedia:
 		elem.pop(-1)
 		elem.pop(-1)
 		orderedlistgene.append(elem.pop(-1))
 		
-	orderedlistgeneFirst=[]
+	
+	orderedlistgene2=[]
+	for elem in sortbyNumberAlleles:
+		orderedlistgene2.append(elem.pop(0))
+			
+		
+	"""orderedlistgeneFirst=[]
 
 	for elem in sortbyfirstallele:
 		elem.pop(-1)
 		elem.pop(-1)
-		orderedlistgeneFirst.append(elem.pop(-1))	
+		orderedlistgeneFirst.append(elem.pop(-1))"""
 			
 	print str(len(conservedlengthgenes)) +" conserved genes"
 	print str(len(notconservedlengthgenes)) +" not conserved genes"
+
 	
 	print "\nBuilding box plot..."
 	
@@ -237,18 +290,13 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 		with open ("notconserved.txt","wb") as f:
 			for gene in notconservedlengthgenes:
 				f.write(str(gene)+"\n")
-	
-	
-	"""asd=list(set(conservedgenes) - set(conservedlengthgenes))
-	#print (asd)
-	
-	s = set(conservedgenes)
-	temp3 = [x for x in conservedlengthgenes if x in s]"""
+
+
 	
 
 	#create the boxplot and build the html representation	
 	if not ReturnValues	:
-		plt=buildPlot(sortbymedia,ReturnValues)
+		aplot=buildPlot(sortbymedia,ReturnValues)
 		
 		plt.show()	
 		plt.close('all')
@@ -275,9 +323,7 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 			mpld3.plugins.connect(fig, ClickInfo(median,(orderedlistgene[i])))
 			i+=1
 		
-			
-		#mpld3.show()
-		#asdasda
+		ax.yaxis.labelpad = 40	
 		boxplothtml=mpld3.fig_to_dict(fig)
 		
 		"""
@@ -302,21 +348,39 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 		
 			
 		mpld3.show()"""
-		
-		#plt.savefig(imagesDir+"plot.png", bbox_inches='tight')
-		
-		
-		# build size histogram
-		
+				
 		plt.close('all')
-
+		orderedlistgene2_basename=[]
+		for elem in orderedlistgene2:
+			orderedlistgene2_basename.append(os.path.basename(elem))
 		
-		fig, ax = plt.subplots(figsize=(23.5,13.0))
+		
+		fig, ax= plt.subplots(figsize=(10.5,5.0))
+		points = ax.plot(sortbyNumberAlleles, 'o')
+		
+		plt.ylabel('Number of alleles')
+		frame1 = plt.gca()			
+		frame1.axes.get_xaxis().set_visible(False)
+		frame1.axes.get_xaxis().set_ticks([])
+		ax.yaxis.labelpad = 40
+		
+		mpld3.plugins.connect(fig, plugins.PointLabelTooltip(points[0],labels=orderedlistgene2_basename))
+
+		mpld3.plugins.connect(fig, ClickInfo2(points[0], orderedlistgene2))
+		
+		
+		
+		numberallelesplothtml=mpld3.fig_to_dict(fig)
+		plt.close('all')
+	
+		
+		fig, ax = plt.subplots(figsize=(10.5,5.0))
 		bp=plt.hist(modaStats,100,rwidth=0.8)
 		plt.ylabel('Number of occurrences')
 		plt.xlabel('Allele Size')
+		ax.yaxis.labelpad = 40
 		start, end = ax.get_xlim()
-		ticks=range(int(start),int(end),500)
+		ticks=range(int(start),int(end),250)
 		plt.xticks(ticks)
 		plt.grid(True)
 		
@@ -324,7 +388,7 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 		histplothtml=mpld3.fig_to_dict(fig)
 
 
-		return notconservedlengthgenes,len(conservedgenes),z,boxplothtml,histplothtml
+		return notconservedlengthgenes,len(conservedgenes),z,boxplothtml,histplothtml,numberallelesplothtml
 
 if __name__ == "__main__":
     main()

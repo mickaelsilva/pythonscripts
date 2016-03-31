@@ -46,10 +46,11 @@ def main():
 	genebasename=genebasename[0]
 	
 		
-	notConservedgenes,totalgenes,genesWOneAllele,boxplot,histplot=alleleSizeStats.getStats(genes,threshold,OneBadGeneNotConserved,True)
+	notConservedgenes,totalgenes,genesWOneAllele,boxplot,histplot,allelenumberplot=alleleSizeStats.getStats(genes,threshold,OneBadGeneNotConserved,True)
 	
 	boxplot=str(json.dumps(boxplot))
 	histplot=str(json.dumps(histplot))
+	allelenumberplot=str(json.dumps(allelenumberplot))
 
 	statsPerGene=CheckCDS.analyzeCDS(genes,transTable,True)
 	
@@ -74,6 +75,25 @@ def main():
         var labels = this.props.labels;
         obj.elements().on("mousedown",function(d, i){ 
                             window.open(labels, '_blank')});
+    }
+    </script>""")
+    
+		f.write("""<script type='text/javascript'>
+    mpld3.register_plugin("clickinfo", ClickInfo2);
+    ClickInfo2.prototype = Object.create(mpld3.Plugin.prototype);
+    ClickInfo2.prototype.constructor = ClickInfo2;
+    ClickInfo2.prototype.requiredProps = ["id"];
+    ClickInfo2.prototype.defaultProps = {labels:null}
+    function ClickInfo2(fig, props){
+        mpld3.Plugin.call(this, fig, props);
+    };
+
+    ClickInfo2.prototype.draw = function(){
+        var obj = mpld3.get_element(this.props.id);
+        labels = this.props.labels;
+        obj.elements().on("mousedown",
+                          function(d, i){ 
+                            window.open(labels[i], '_blank')});
     }
     </script>""")
 		
@@ -102,7 +122,8 @@ li a {
 		
 		f.write("<h1>Allele size analysis using a mode +/- "+str(threshold)+"</h1><p> Genes are considered not conserved if >1 allele are outside the mode +/-0.05 size. Genes with only 1 allele outside the threshold are considered conserved\n<h3>"+str(totalgenes)+" total genes</h3>\n<h3>"+str(len(notConservedgenes))+" genes not conserved</h3>\n<h3>"+str(genesWOneAllele)+" genes with only one allele</h3>\n")
 		f.write("<h2>Distribution of allele mode sizes per gene</h2>\n<div id='fig02'></div>\n<br>")
-		f.write("<h2>Boxplot for all genes</h2><p>Box plot for each gene on a descending order of the median allele sizes</p><p>Use the zoom button and hover the mouse over a box/median to see the gene name</p><p>-->Box represent the 25 and 75 percentiles (1st and 3rd quartile)</p><p>-->Box plot whiskers representing the 5 and 95 percentile</p><p>-->Red line represent the median (2nd quartile)</p><p>-->Green dots are outliers </p>\n<div id='fig01'></div>\n")
+		f.write("<h2>Distribution of number of alleles per gene</h2>\n<div id='fig03'></div>\n<br>")
+		f.write("<h2>Size boxplot for all genes</h2><p>Box plot for each gene on a descending order of the median allele sizes</p><p>Use the zoom button and hover the mouse over a box/median to see the gene name</p><p>-->Box represent the 25 and 75 percentiles (1st and 3rd quartile)</p><p>-->Box plot whiskers representing the 5 and 95 percentile</p><p>-->Red line represent the median (2nd quartile)</p><p>-->Green dots are outliers </p>\n<div id='fig01'></div>\n")
 		
 		f.write("<title>Schema Validation Results</title>\n</head>\n<body>\n<h1>Allele CDS analysis results</h1>\n<p>Summary table of the alleles with issues per gene using the <a href='http://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi#SG11'>NCBI translation table 11</a></p><p>Click on the gene name to open the fasta file</p><p>click on the boxes with the % to get the index of the alleles with issues</p> ")
 		
@@ -178,7 +199,7 @@ li a {
 	</script>""")
 		
 		f.write("\n<script type='text/javascript'>var alleles="+json.dumps(newlist)+"</script>")
-		f.write("\n<script type='text/javascript'>var json01 ="+str(boxplot)+";\nvar json02 ="+str(histplot)+";\nmpld3.draw_figure('fig01', json01);mpld3.draw_figure('fig02', json02);</script>")
+		f.write("\n<script type='text/javascript'>var json01 ="+str(boxplot)+";\nvar json02 ="+str(histplot)+";\nvar json03 ="+str(allelenumberplot)+";\nmpld3.draw_figure('fig01', json01);mpld3.draw_figure('fig02', json02);mpld3.draw_figure('fig03', json03);</script>")
 
 		f.write("</body>\n</html>")
 	
