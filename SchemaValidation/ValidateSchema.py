@@ -79,7 +79,7 @@ def main():
     </script>""")
     
 		f.write("""<script type='text/javascript'>
-    mpld3.register_plugin("clickinfo", ClickInfo2);
+    mpld3.register_plugin("clickinfo2", ClickInfo2);
     ClickInfo2.prototype = Object.create(mpld3.Plugin.prototype);
     ClickInfo2.prototype.constructor = ClickInfo2;
     ClickInfo2.prototype.requiredProps = ["id"];

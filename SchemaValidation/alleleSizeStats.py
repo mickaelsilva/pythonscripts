@@ -71,7 +71,7 @@ class ClickInfo2(plugins.PluginBase):
     """Plugin for getting info on click"""
     
     JAVASCRIPT = """
-    mpld3.register_plugin("clickinfo", ClickInfo2);
+    mpld3.register_plugin("clickinfo2", ClickInfo2);
     ClickInfo2.prototype = Object.create(mpld3.Plugin.prototype);
     ClickInfo2.prototype.constructor = ClickInfo2;
     ClickInfo2.prototype.requiredProps = ["id"];
@@ -95,7 +95,7 @@ class ClickInfo2(plugins.PluginBase):
             suffix = "pts"
         else:
             suffix = None"""
-        self.dict_ = {"type": "clickinfo","id": utils.get_id(points, "pts"),"labels": labels}
+        self.dict_ = {"type": "clickinfo2","id": utils.get_id(points, "pts"),"labels": labels}
 
 
 def buildPlot(nparray,ReturnValues):
@@ -363,6 +363,9 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 		frame1.axes.get_xaxis().set_visible(False)
 		frame1.axes.get_xaxis().set_ticks([])
 		ax.yaxis.labelpad = 40
+		
+		print orderedlistgene2_basename
+		print sortbyNumberAlleles
 		
 		mpld3.plugins.connect(fig, plugins.PointLabelTooltip(points[0],labels=orderedlistgene2_basename))
 
