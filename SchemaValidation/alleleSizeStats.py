@@ -199,7 +199,7 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 		median=numpy.median(numpy.array(sizes))
 
 		modaStats.append(moda)
-		
+
 		
 		#check if the gene is conserved considering the threshold and the -p parameter
 		for size in sizes:
@@ -233,7 +233,7 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 	
 	
 		allsizes.append(sizes)
-		allNumberAlleles.append([gene,allelenumber])
+		allNumberAlleles.append([gene,moda,allelenumber])
 
 	with open("tabStats.txt", "wb") as t:
 		t.write("gene\tmin\tmax\tmean\tstandard deviation")
@@ -245,19 +245,13 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 	
 	#order genes by median
 	sortbymedia=sorted(allsizes, key=itemgetter(-1))
-	sortbymedia.reverse()
+	#sortbymedia.reverse()
 	
 	#order genes by number of alleles
-	sortbyNumberAlleles=sorted(allNumberAlleles, key=itemgetter(-1))
-	sortbyNumberAlleles.reverse()
+	sortbyNumberAlleles=sorted(allNumberAlleles, key=itemgetter(1))
+	#sortbyNumberAlleles.reverse()
 	
-	
-	"""allsizes2=deepcopy(allsizes)
-	
-	#order genes by the first allele
-	sortbyfirstallele=[]
-	sortbyfirstallele=sorted(allsizes2, key=itemgetter(-2))
-	sortbyfirstallele.reverse()"""
+
 	
 	
 	orderedlistgene=[]
@@ -269,16 +263,11 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 		
 	
 	orderedlistgene2=[]
+	sortbyNumberAllelesx=[]
 	for elem in sortbyNumberAlleles:
 		orderedlistgene2.append(elem.pop(0))
-			
+		sortbyNumberAllelesx.append(elem.pop(0))
 		
-	"""orderedlistgeneFirst=[]
-
-	for elem in sortbyfirstallele:
-		elem.pop(-1)
-		elem.pop(-1)
-		orderedlistgeneFirst.append(elem.pop(-1))"""
 			
 	print str(len(conservedlengthgenes)) +" conserved genes"
 	print str(len(notconservedlengthgenes)) +" not conserved genes"
@@ -323,31 +312,13 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 			mpld3.plugins.connect(fig, ClickInfo(median,(orderedlistgene[i])))
 			i+=1
 		
-		ax.yaxis.labelpad = 40	
+		ax.yaxis.labelpad = 40
+		#frame1 = plt.gca()
+		#frame1.axes.set_xlim([0,maxMode,(maxMode/10)])
+		#ticks=range(int(0),int(maxMode),(maxMode/10))
+		#plt.xticks(ticks)
 		boxplothtml=mpld3.fig_to_dict(fig)
 		
-		"""
-		#code to build the boxplot ordered by first allele of the gene file
-		
-		plt.close('all')
-		
-		plt,ax,fig,bp=buildPlot(sortbyfirstallele,ReturnValues)
-		
-		allboxes=bp.get('boxes')
-		i=0
-		for box in allboxes:
-			mpld3.plugins.connect(fig, plugins.LineLabelTooltip(box,label=os.path.basename(orderedlistgeneFirst[i]),voffset=50, hoffset=10))
-			mpld3.plugins.connect(fig, ClickInfo(box,(orderedlistgeneFirst[i])))
-			i+=1
-		allmedians=bp.get('medians')
-		i=0
-		for median in allmedians:
-			mpld3.plugins.connect(fig, plugins.LineLabelTooltip(median,label=os.path.basename(orderedlistgeneFirst[i]),voffset=50, hoffset=10))
-			mpld3.plugins.connect(fig, ClickInfo(median,(orderedlistgeneFirst[i])))
-			i+=1
-		
-			
-		mpld3.show()"""
 				
 		plt.close('all')
 		orderedlistgene2_basename=[]
@@ -355,17 +326,15 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 			orderedlistgene2_basename.append(os.path.basename(elem))
 		
 		
-		fig, ax= plt.subplots(figsize=(10.5,5.0))
-		points = ax.plot(sortbyNumberAlleles, 'o')
+		fig, ax= plt.subplots(figsize=(20,10))
+		points = ax.plot(sortbyNumberAllelesx,sortbyNumberAlleles,'o')
 		
 		plt.ylabel('Number of alleles')
-		frame1 = plt.gca()			
-		frame1.axes.get_xaxis().set_visible(False)
-		frame1.axes.get_xaxis().set_ticks([])
+		plt.xlabel('Allele mode size')
+		
 		ax.yaxis.labelpad = 40
 		
-		print orderedlistgene2_basename
-		print sortbyNumberAlleles
+
 		
 		mpld3.plugins.connect(fig, plugins.PointLabelTooltip(points[0],labels=orderedlistgene2_basename))
 
@@ -383,8 +352,8 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 		plt.xlabel('Allele Size')
 		ax.yaxis.labelpad = 40
 		start, end = ax.get_xlim()
-		ticks=range(int(start),int(end),250)
-		plt.xticks(ticks)
+		#ticks=range(int(start),int(end),250)
+		#plt.xticks(ticks)
 		plt.grid(True)
 		
 		
