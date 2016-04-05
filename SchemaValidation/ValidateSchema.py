@@ -5,6 +5,8 @@ import os
 import argparse
 import json
 from operator import itemgetter
+import HTSeq
+
 
 def main():
 	
@@ -36,8 +38,18 @@ def main():
 		listbasename=os.path.basename(os.path.normpath(genes))
 		
 		with open("listGenes"+listbasename+".txt", "wb") as f:
-			for file in os.listdir(genes):
-				f.write( str(genes)+str(file)+"\n")
+			for gene in os.listdir(genes):
+				try:
+					genepath=os.path.join(genes,gene)
+					gene_fp2 = HTSeq.FastaReader(genepath)
+					for allele in gene_fp2:
+						break
+					f.write( genepath+"\n")
+				except Exception as e:
+					print e
+					pass
+					
+				
 		genes="listGenes"+listbasename+".txt"
 		
 	
