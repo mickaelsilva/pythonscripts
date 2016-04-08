@@ -13,12 +13,15 @@ def main():
 	parser = argparse.ArgumentParser(description="This program analyses a set of gene files, analyzing the alleles CDS and the length of the alleles per gene")
 	parser.add_argument('-i', nargs='?', type=str, help='list genes, directory or .txt file with the full path', required=True)
 	parser.add_argument('-p', nargs='?', type=bool, help='One bad allele still makes gene conserved', required=False)
+	parser.add_argument('--log', dest='logScale', action='store_true')
 	parser.add_argument('-ta', nargs='?', type=int, help='Threshold', required=True)
 	parser.add_argument('-t', nargs='?', type=float, help='Threshold', required=False)
+	parser.set_defaults(logScale=False)
 	
 	args=parser.parse_args()
 	genes = args.i
 	transTable = args.ta
+	logScale=args.logScale
 	
 	try:
 		threshold=float(args.t)
@@ -58,7 +61,7 @@ def main():
 	genebasename=genebasename[0]
 	
 		
-	notConservedgenes,totalgenes,genesWOneAllele,boxplot,histplot,allelenumberplot=alleleSizeStats.getStats(genes,threshold,OneBadGeneNotConserved,True)
+	notConservedgenes,totalgenes,genesWOneAllele,boxplot,histplot,allelenumberplot=alleleSizeStats.getStats(genes,threshold,OneBadGeneNotConserved,True,logScale)
 	
 	boxplot=str(json.dumps(boxplot))
 	histplot=str(json.dumps(histplot))

@@ -10,6 +10,7 @@ from matplotlib.ticker import ScalarFormatter
 import mpld3
 from mpld3 import utils, plugins
 import numpy
+import math
 
 def main():
 
@@ -138,7 +139,7 @@ def buildPlot(nparray,ReturnValues):
 	return plt,ax,fig,bp
 	
 
-def getStats(genes,threshold,OneNotConserved,ReturnValues):
+def getStats(genes,threshold,OneNotConserved,ReturnValues,logScale):
 	
 	gene_fp = open( genes, 'r')
 
@@ -233,7 +234,10 @@ def getStats(genes,threshold,OneNotConserved,ReturnValues):
 	
 	
 		allsizes.append(sizes)
-		allNumberAlleles.append([gene,moda,allelenumber])
+		if logScale:
+			allNumberAlleles.append([gene,math.log10(moda),math.log10(allelenumber)])
+		else:
+			allNumberAlleles.append([gene,moda,allelenumber])
 
 	with open("tabStats.txt", "wb") as t:
 		t.write("gene\tmin\tmax\tmean\tstandard deviation")
