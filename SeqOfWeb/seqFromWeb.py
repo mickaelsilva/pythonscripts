@@ -60,8 +60,12 @@ def main():
 		toDown=True
 		try:
 			ref=ref.split("\t")
-			model=ref[1]
+			
 			ref=ref[0]
+			if len(ref)>1:
+				model=ref[1]
+			else:
+				model ="nomodel"
 			
 		except:
 			
